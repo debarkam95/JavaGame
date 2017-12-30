@@ -248,7 +248,6 @@ class Board extends JFrame
             }
             else if(pBoard[i][j]=='u')
             {
-                //set color to Green
                 g.setColor(Color.RED);
                 
                 //draw rectangle outline
@@ -298,36 +297,69 @@ public class Game extends KeyAdapter
         if(evt.getKeyChar()=='w' && y>0)
         {
             ub.updateXY(x, y-1);
+            if(b.getPositionValue(x, y-1)=='f')
+            {
+                ub.updateCurLife(14);
+                f.itemsOnBoard--;
+            }
             b.updatePosition(x, y, 'e');
             b.updatePosition(x, y-1, 'u');
             ub.updateCurLife(-1);
-            b.renderBoard();
+
         }
         else if(evt.getKeyChar()=='a' && x>0)
         {
             ub.updateXY(x-1, y);
+            if(b.getPositionValue(x-1, y)=='f')
+            {
+                ub.updateCurLife(14);
+                f.itemsOnBoard--;
+            }
             b.updatePosition(x, y, 'e');
             b.updatePosition(x-1, y, 'u');
             ub.updateCurLife(-1);
-            b.renderBoard();
+
         }
         else if(evt.getKeyChar()=='s' && y<49)
         {
             ub.updateXY(x, y+1);
+            if(b.getPositionValue(x, y+1)=='f')
+            {
+                ub.updateCurLife(14);
+                f.itemsOnBoard--;
+            }
             b.updatePosition(x, y, 'e');
             b.updatePosition(x, y+1, 'u');
             ub.updateCurLife(-1);
-            b.renderBoard();
+           
         }
         else if(evt.getKeyChar()=='d' && x<49)
         {
             ub.updateXY(x+1, y);
+            if(b.getPositionValue(x+1, y)=='f')
+           {
+                ub.updateCurLife(14);
+                f.itemsOnBoard--;
+            }
             b.updatePosition(x, y, 'e');
             b.updatePosition(x+1, y, 'u');
             ub.updateCurLife(-1);
-            b.renderBoard();
+            
+        }
+
+        if(f.itemsOnBoard==0)
+        {
+            f.replenish();
+            b.copyFood(f);
+        }
+        //System.out.println(f.itemsOnBoard);
+        if(ub.returnCurLife()<=0)
+        {
+            System.out.println("Player dead");
+            System.exit(0);
         }
         b.copyUser(ub);
+        b.renderBoard();
     }
 
 }
