@@ -1,6 +1,7 @@
 //programmer key: n->neutral, f->food, u->userBot
 import java.io.*;
 import javax.swing.*;
+import java.awt.*;
 
 class UserBot
 {
@@ -45,7 +46,7 @@ class foodItem
     public  int posY;
 }
 
-class Board
+class Board extends JFrame
 {
     private char pBoard[][]= new char[200][200];
 
@@ -54,6 +55,9 @@ class Board
         for(int i=0;i<200;i++)
             for(int j=0;j<200;j++)
                 pBoard[i][j]='n';
+        
+        setVisible(true);
+        setSize(400,400);
     }
 
     public void updatePosition( int x,  int y, char c)
@@ -61,15 +65,48 @@ class Board
         pBoard[x][y]=c;
     }
 
+    public char getPositionValue(int x, int y)
+    {
+        return pBoard[x][y];
+    }
+
+    public void paint(Graphics g)
+    {
+        for(int i=0;i<200;i++)
+        for(int j=0;j<200;j++)
+        {
+            if(pBoard[i][j]=='f')
+            {
+                //set color to Green
+                g.setColor(Color.GREEN);
+        
+                //draw rectangle outline
+                g.fillRect(2*i,2*j,10,10);
+            }
+        }
+    }
+
+    public void renderBoard()
+    {
+        repaint();
+    }
 }
+
+
 
 public class Game
 {
+ 
     public static void main(String argv[])throws Exception
     {
-        JFrame gBoard=new JFrame();
-        gBoard.setSize(400,400);
-        gBoard.setLayout(null);
-        gBoard.setVisible(true);
+        Board b=new Board();
+
+        b.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        b.updatePosition(10,50,'f');
+        b.updatePosition(110,150,'f');
+        b.updatePosition(150,50,'f');
+        b.updatePosition(50,50,'f');
+
+        b.renderBoard();
     }
 }
