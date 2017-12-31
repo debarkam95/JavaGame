@@ -48,6 +48,101 @@ class UserBot
 
 
 
+class CompBot
+{
+    private int curX,curY,nxtX,nxtY;
+    private int curLife;
+    public CompBot()
+    {
+        curX=curY=24;
+        curLife=20;
+    }
+
+    public int getCurX()
+    {
+        return curX;
+    }
+
+    public int getCurY()
+    {
+        return curY;
+    }
+
+    public int getCurLife()
+    {
+        return curLife;
+    }
+
+    public void computerTurn(Food f, Board b, UserBot ub)
+    {
+        int minX,minY,minDist,tempDist,userDist,userX,userY,tempX,tempY;
+        //firstly find the closest food item that is far from UserBot
+        minDist=200000;
+        userX=ub.getX();
+        userY=ub.getY();
+        minX=25;
+        minY=25;
+        for(int i=0;i<20;i++)
+        {
+            tempX=f.x[i];
+            tempY=f.y[i];
+            if(b.getPositionValue(tempX, tempY)=='f') //if food exist
+            {
+                tempDist=(int)Math.sqrt((int)((curX-tempX)*(curX-tempX)+(curY-tempY)*(curY-tempY)));
+                userDist=(int)Math.sqrt((int)((userX-tempX)*(userX-tempX)+(userY-tempY)*(userY-tempY)));
+                if(minDist==200000)
+                {
+                    minDist=tempDist;
+                    minX=tempX;
+                    minY=tempY;
+                }
+                else if(tempDist<minDist && tempDist<userDist)
+                {
+                    minDist=tempDist;
+                    minX=tempX;
+                    minY=tempY;
+                }
+            }
+        }
+
+        if(minX<curX)
+        {
+            nxtY=curY;
+            nxtX=curX-1;
+        }
+        else if(minX>curX)
+        {
+            nxtY=curY;
+            nxtX=curX+1;
+        }
+        else
+        {
+            if(minY<curY)
+            {
+                nxtX=curX;
+                nxtY=curY-1;
+            }
+            if(minY>curY)
+            {
+                nxtX=curX;
+                nxtY=curY+1;
+            }
+        }
+
+
+        if(b.getPositionValue(nxtX,nxtY)=='f')
+        {
+            curLife+=21;
+            f.itemsOnBoard--;
+        }
+        b.updatePosition(curX, curY, 'e');
+        b.updatePosition(nxtX, nxtY, 'c');
+        curLife--;
+        curX=nxtX;
+        curY=nxtY;
+    }
+}
+
 
 class Food
 {
@@ -186,7 +281,7 @@ class Food
 class Board extends JFrame
 {
     private char pBoard[][]= new char[50][50];
-    int userMoves;
+    int userMoves,compMoves;
 
     public Board()
     {
@@ -196,6 +291,7 @@ class Board extends JFrame
         
         setVisible(true);
         setSize(600,700);
+        pBoard[24][24]='c';
     }
 
     public void updatePosition( int x,  int y, char c)
@@ -221,7 +317,10 @@ class Board extends JFrame
         userMoves=u.returnCurLife();
     }
 
-
+    public void copyComp(CompBot cb)
+    {
+        compMoves=cb.getCurLife();
+    }
 
     public void paint(Graphics g)
     {
@@ -233,7 +332,7 @@ class Board extends JFrame
         g.fillRect(0,601,600,100);
         g.setColor(Color.BLACK);
         g.drawString("Life : "+Integer.toString(userMoves),50,650);
-
+        g.drawString("Comp : "+Integer.toString(compMoves),150,650);
         for(int i=0;i<50;i++)
         for(int j=0;j<50;j++)
         {
@@ -261,6 +360,13 @@ class Board extends JFrame
                 //draw rectangle outline
                 g.fillRect(12*i,12*j,12,12);    
             }
+            else if(pBoard[i][j]=='c')
+            {
+                g.setColor(Color.BLACK);
+                
+                //draw rectangle outline
+                g.fillRect(12*i,12*j,12,12);
+            }
         }
 
     }
@@ -278,6 +384,7 @@ public class Game extends KeyAdapter
     Board b=new Board();
     Food f=new Food();
     UserBot ub=new UserBot();
+    CompBot cb=new CompBot();
 
     public Game()
     {
@@ -299,7 +406,7 @@ public class Game extends KeyAdapter
             ub.updateXY(x, y-1);
             if(b.getPositionValue(x, y-1)=='f')
             {
-                ub.updateCurLife(14);
+                ub.updateCurLife(21);
                 f.itemsOnBoard--;
             }
             b.updatePosition(x, y, 'e');
@@ -312,7 +419,7 @@ public class Game extends KeyAdapter
             ub.updateXY(x-1, y);
             if(b.getPositionValue(x-1, y)=='f')
             {
-                ub.updateCurLife(14);
+                ub.updateCurLife(21);
                 f.itemsOnBoard--;
             }
             b.updatePosition(x, y, 'e');
@@ -325,7 +432,7 @@ public class Game extends KeyAdapter
             ub.updateXY(x, y+1);
             if(b.getPositionValue(x, y+1)=='f')
             {
-                ub.updateCurLife(14);
+                ub.updateCurLife(21);
                 f.itemsOnBoard--;
             }
             b.updatePosition(x, y, 'e');
@@ -338,7 +445,7 @@ public class Game extends KeyAdapter
             ub.updateXY(x+1, y);
             if(b.getPositionValue(x+1, y)=='f')
            {
-                ub.updateCurLife(14);
+                ub.updateCurLife(21);
                 f.itemsOnBoard--;
             }
             b.updatePosition(x, y, 'e');
@@ -347,7 +454,7 @@ public class Game extends KeyAdapter
             
         }
 
-        if(f.itemsOnBoard==0)
+        if(f.itemsOnBoard<=0)
         {
             f.replenish();
             b.copyFood(f);
@@ -358,7 +465,19 @@ public class Game extends KeyAdapter
             System.out.println("Player dead");
             System.exit(0);
         }
+        cb.computerTurn(f, b, ub);
+        if(cb.getCurLife()<=0)
+        {
+            System.out.println("Computer dead");
+            System.exit(0);
+        }
+        if(f.itemsOnBoard<=0)
+        {
+            f.replenish();
+            b.copyFood(f);
+        }
         b.copyUser(ub);
+        b.copyComp(cb);
         b.renderBoard();
     }
 
